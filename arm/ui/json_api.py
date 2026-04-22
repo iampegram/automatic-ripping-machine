@@ -163,18 +163,18 @@ def process_makemkv_logfile(job, job_results):
     if job_stage_index is not None:
         try:
             if job_batch_info.group(4) != job_stage_index.group(1):
-               app.logger.debug(f"Appending new batch position info for job {job.job_id}: "
+                app.logger.debug(f"Appending new batch position info for job {job.job_id}: "
                                 f"BINF:{int(time())},"
                                 f"{job_batch_info.group(2)},"
                                 f"{job_batch_info.group(3)},"
                                 f"{job_stage_index.group(1)}"
                                 )
-               with open(batch_log_path, 'a') as f:
-                   f.write(f"\nBINF:{int(time())},"
-                                f"{job_batch_info.group(2)},"
-                                f"{job_batch_info.group(3)},"
-                                f"{job_stage_index.group(1)}"
-                                )
+                with open(batch_log_path, 'a') as f:
+                    f.write(f"\nBINF:{int(time())},"
+                            f"{job_batch_info.group(2)},"
+                            f"{job_batch_info.group(3)},"
+                            f"{job_stage_index.group(1)}"
+                            )
             app.logger.debug(f"job_stage_index: {job_stage_index}")
             current_index = f"Track {job_batch_info.group(2)}/{job_batch_info.group(3)}<br>{job_stage_index.group(3)}"
             job.stage = job_results['stage'] = current_index
