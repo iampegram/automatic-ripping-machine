@@ -129,13 +129,14 @@ def process_makemkv_logfile(job, job_results):
     """
     job_progress_status = None
     job_stage_index = None
+    batch_log_path = os.path.join(cfg.arm_config['LOGPATH'], 'progress', str(job.job_id)) + '.log.batchinfo'
     lines = read_log_line(os.path.join(cfg.arm_config['LOGPATH'], 'progress', str(job.job_id)) + '.log')
-    batch_index = read_log_line(os.path.join(cfg.arm_config['LOGPATH'], 'progress', str(job.job_id)) + '.log.batchinfo')
+    batch_index = read_log_line(batch_log_path)
     # Correctly get last entry for progress bar
 
     job_progress_status = find_last_regex_match(r"PRGV:(\d{3,}),(\d+),(\d{3,})", lines)
-    job_stage_index = find_last_regex_match(r"PRGC:\d+,(\d+),\"([\w -]{2,})\"", lines)
-    job_batch_info = find_last_regex_match(r"BINF:(\d{10}),(\d+),(\d+)", batch_index)
+    job_stage_index = find_last_regex_match(r"PRGC:(\d+),(\d+),\"([\w -]{2,})\"", lines)
+    job_batch_info = find_last_regex_match(r"BINF:(\d{10}),(\d+),(\d+),(\d+)", batch_index)
 
     if job_progress_status is not None:
         app.logger.debug(f"job_progress_status: {job_progress_status}")
@@ -148,7 +149,7 @@ def process_makemkv_logfile(job, job_results):
         elapsed_time = current_time - job_start_time
         total_time = int((elapsed_time * 100) / float(job.progress))
         time_remaining = total_time - elapsed_time
-        app.logger.debug(f"ETA values: Elapsed seconds: {elapsed_time}, "
+        app.logger.debug(f"ETA values for job {job.job_id}: Elapsed seconds: {elapsed_time}, "
                          f"Percent: {job.progress}, "
                          f"Projected time: {total_time}, "
                          f"Time remaining: {time_remaining}"
@@ -161,8 +162,21 @@ def process_makemkv_logfile(job, job_results):
 
     if job_stage_index is not None:
         try:
+            if job_batch_info.group(4) != job_stage_index.group(1):
+               app.logger.debug(f"Appending new batch position info for job {job.job_id}: "
+                                f"BINF:{int(time())},"
+                                f"{job_batch_info.group(2)},"
+                                f"{job_batch_info.group(3)},"
+                                f"{job_stage_index.group(1)}"
+                                )
+               with open(batch_log_path, 'a') as f:
+                   f.write(f"\nBINF:{int(time())},"
+                                f"{job_batch_info.group(2)},"
+                                f"{job_batch_info.group(3)},"
+                                f"{job_stage_index.group(1)}"
+                                )
             app.logger.debug(f"job_stage_index: {job_stage_index}")
-            current_index = f"Track {job_batch_info.group(2)}/{job_batch_info.group(3)}<br>{job_stage_index.group(2)}"
+            current_index = f"Track {job_batch_info.group(2)}/{job_batch_info.group(3)}<br>{job_stage_index.group(3)}"
             job.stage = job_results['stage'] = current_index
             db.session.commit()
         except Exception as error:
