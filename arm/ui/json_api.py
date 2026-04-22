@@ -164,11 +164,11 @@ def process_makemkv_logfile(job, job_results):
         try:
             if job_batch_info.group(4) != job_stage_index.group(1):
                 app.logger.debug(f"Appending new batch position info for job {job.job_id}: "
-                                f"BINF:{int(time())},"
-                                f"{job_batch_info.group(2)},"
-                                f"{job_batch_info.group(3)},"
-                                f"{job_stage_index.group(1)}"
-                                )
+                                 f"BINF:{int(time())},"
+                                 f"{job_batch_info.group(2)},"
+                                 f"{job_batch_info.group(3)},"
+                                 f"{job_stage_index.group(1)}"
+                                 )
                 with open(batch_log_path, 'a') as f:
                     f.write(f"\nBINF:{int(time())},"
                             f"{job_batch_info.group(2)},"
